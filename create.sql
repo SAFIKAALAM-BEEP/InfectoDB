@@ -3,6 +3,12 @@
 -- Team: Yaritza Yanez, Safika Alam, Roselio Ortega
 -- Team ID: 2
 
+-- Drop tables if they exist (for clean setup)
+DROP TABLE IF EXISTS VACCINATION_DATA CASCADE;
+DROP TABLE IF EXISTS INFECTION_STATS CASCADE;
+DROP TABLE IF EXISTS DISEASE CASCADE;
+DROP TABLE IF EXISTS STATE CASCADE;
+
 -- Create STATE table
 CREATE TABLE STATE (
     state_id INT NOT NULL,
