@@ -7,10 +7,10 @@
 DROP TABLE IF EXISTS VACCINATION_DATA CASCADE;
 DROP TABLE IF EXISTS INFECTION_STATS CASCADE;
 DROP TABLE IF EXISTS DISEASE CASCADE;
-DROP TABLE IF EXISTS STATE CASCADE;
+DROP TABLE IF EXISTS STATE_ CASCADE;
 
 -- Create STATE table
-CREATE TABLE STATE (
+CREATE TABLE STATE_ (
     state_id INT NOT NULL,
     state_name VARCHAR(100) NOT NULL,
     population INT
@@ -42,7 +42,7 @@ CREATE TABLE VACCINATION_DATA (
 );
 
 -- Add Primary Key Constraints using ALTER TABLE
-ALTER TABLE STATE ADD PRIMARY KEY (state_id);
+ALTER TABLE STATE_ ADD PRIMARY KEY (state_id);
 ALTER TABLE DISEASE ADD PRIMARY KEY (disease_id);
 ALTER TABLE INFECTION_STATS ADD PRIMARY KEY (record_id);
 ALTER TABLE VACCINATION_DATA ADD PRIMARY KEY (vaccine_id);
@@ -61,7 +61,7 @@ REFERENCES DISEASE(disease_id);
 ALTER TABLE VACCINATION_DATA 
 ADD CONSTRAINT fk_vaccination_state 
 FOREIGN KEY (state_id) 
-REFERENCES STATE(state_id);
+REFERENCES STATE_(state_id);
 
 -- Add NOT NULL constraints for foreign keys (already defined in CREATE, but being explicit)
 ALTER TABLE INFECTION_STATS ALTER COLUMN disease_id SET NOT NULL;
@@ -74,7 +74,7 @@ CREATE INDEX idx_vaccination_disease ON VACCINATION_DATA(disease_id);
 CREATE INDEX idx_vaccination_state ON VACCINATION_DATA(state_id);
 
 -- Add comments for documentation
-COMMENT ON TABLE STATE IS 'Stores information about states/countries with their populations';
+COMMENT ON TABLE STATE_ IS 'Stores information about states/countries with their populations';
 COMMENT ON TABLE DISEASE IS 'Stores information about infectious diseases';
 COMMENT ON TABLE INFECTION_STATS IS 'Stores infection statistics for each disease';
 COMMENT ON TABLE VACCINATION_DATA IS 'Stores vaccination data per disease per state';
