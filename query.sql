@@ -3,39 +3,38 @@
 -- Team: Yaritza Yanez, Safika Alam, Roselio Ortega
 -- Team ID: 2
 
--- InfectoDB: User Queries for Public Health Analysis
--- Team: Yaritza Yanez, Safika Alam, Roselio Ortega
-
 -- ============================================================================
--- QUERY 1: Identify High Transmission Risk Diseases
--- Purpose: Public health officials need to prioritize diseases with high 
---          transmission potential for early intervention and resource allocation.
--- Calculates: Transmission rate (R0), mortality rate (deaths/cases * 100)
--- User Scenario: Epidemiologist identifying which diseases require immediate 
---                containment measures based on transmission potential.
+-- QUERY 1: Find diseases with the highest case fatality rates (mortality %)
+-- Purpose: Shows diseases sorted by mortality rate (deaths as percentage of cases)
+-- User Scenario: A public health official needs to identify which diseases have 
+--                the deadliest outcomes to prioritize treatment research
 -- ============================================================================
 SELECT 
     d.disease_name,
     d.year_detected,
-    i.R0,
     i.total_cases,
     i.total_deaths,
-    ROUND((i.total_deaths::DECIMAL / i.total_cases) * 100, 2) AS mortality_rate_percent
+    i.R0,
+    ROUND((i.total_deaths::DECIMAL / i.total_cases) * 100, 2) AS mortality_rate_percent,
+    CASE 
+        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 50 THEN 'Extremely High Mortality'
+        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 20 THEN 'High Mortality'
+        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 5 THEN 'Moderate Mortality'
+        ELSE 'Low Mortality'
+    END AS mortality_severity
 FROM DISEASE d
 JOIN INFECTION_STATS i ON d.disease_id = i.disease_id
-WHERE i.R0 > 10 
-    AND i.total_cases > 0
+WHERE i.total_cases > 0
     AND i.total_deaths IS NOT NULL
-ORDER BY i.R0 DESC, mortality_rate_percent DESC
+    AND i.total_deaths > 0
+ORDER BY mortality_rate_percent DESC
 LIMIT 10;
 
 -- ============================================================================
--- QUERY 2: Tuberculosis Vaccination Coverage by State
--- Purpose: Identify states with lowest TB vaccination rates to target 
---          immunization campaigns effectively.
--- Calculates: Vaccination rate (vaccinated/population * 100)
--- User Scenario: TB control program manager allocating vaccination resources
---                to low-coverage areas.
+-- QUERY 2: Find states with lowest Tuberculosis vaccination coverage
+-- Purpose: Shows states with the poorest TB vaccination rates and categorizes coverage level
+-- User Scenario: A TB control manager needs to allocate vaccination resources to 
+--                states with the most critical coverage gaps
 -- ============================================================================
 SELECT 
     s.state_name,
@@ -58,13 +57,10 @@ ORDER BY vaccination_rate_percent ASC  -- Show lowest coverage first
 LIMIT 10;
 
 -- ============================================================================
--- QUERY 3: Low Vaccination Coverage for Mumps and Rubella
--- Purpose: Identify states at risk for Mumps and Rubella outbreaks due to 
---          low vaccination coverage (below herd immunity thresholds).
--- Calculates: Vaccination rate (vaccinated/population * 100), ranks states 
---             from lowest to highest coverage.
--- User Scenario: Immunization program manager targeting catch-up vaccination 
---                campaigns in low-coverage areas.
+-- QUERY 3: Identify states with lowest Mumps and Rubella vaccination rates
+-- Purpose: Ranks states by vaccination rates for Mumps and Rubella separately
+-- User Scenario: An immunization program manager needs to identify which states 
+--                need catch-up vaccination campaigns to prevent outbreaks
 -- ============================================================================
 SELECT 
     s.state_name,
@@ -82,21 +78,20 @@ WHERE d.disease_name IN ('Mumps', 'Rubella')
     AND v.total_vaccinated IS NOT NULL
     AND v.total_vaccinated > 0
 ORDER BY vaccination_rate_percent ASC
+LIMIT 10;
 
 -- ============================================================================
--- QUERY 4: Compare Vaccine Coverage for Different Diseases
--- Purpose: Compare vaccination rates across multiple vaccine-preventable 
---          diseases to identify which have the lowest overall coverage.
--- Calculates: Average vaccination rate across all states for each disease
--- User Scenario: Public health director prioritizing which diseases need 
---                nationwide vaccination campaign improvements.
+-- QUERY 4: Compare average vaccination rates across different diseases
+-- Purpose: Shows which diseases have the lowest overall vaccination coverage nationally
+-- User Scenario: A public health director needs to decide which diseases should 
+--                get priority in nationwide vaccination awareness campaigns
 -- ============================================================================
 SELECT 
     d.disease_name,
     COUNT(DISTINCT v.state_id) AS states_with_data,
-    AVG(v.total_vaccinated::DECIMAL / s.population * 100) AS avg_vaccination_rate_percent,
-    MIN(v.total_vaccinated::DECIMAL / s.population * 100) AS min_vaccination_rate_percent,
-    MAX(v.total_vaccinated::DECIMAL / s.population * 100) AS max_vaccination_rate_percent
+    ROUND(AVG(v.total_vaccinated::DECIMAL / s.population * 100), 2) AS avg_vaccination_rate_percent,
+    ROUND(MIN(v.total_vaccinated::DECIMAL / s.population * 100), 2) AS min_vaccination_rate_percent,
+    ROUND(MAX(v.total_vaccinated::DECIMAL / s.population * 100), 2) AS max_vaccination_rate_percent
 FROM VACCINATION_DATA v
 JOIN STATE_ s ON v.state_id = s.state_id
 JOIN DISEASE d ON v.disease_id = d.disease_id
@@ -108,13 +103,11 @@ ORDER BY avg_vaccination_rate_percent ASC
 LIMIT 10;
 
 -- ============================================================================
--- QUERY 5: Identify States with Vaccination Coverage Gaps
--- Purpose: Find states with limited vaccine coverage across multiple diseases,
---          indicating potential weaknesses in immunization infrastructure.
--- Calculates: Number of diseases covered, overall vaccination rate, 
---             aggregates vaccine data by state.
--- User Scenario: National immunization coordinator identifying states needing 
---                infrastructure support for comprehensive vaccine programs.
+-- QUERY 5: Find states with gaps in vaccination coverage (fewer than 3 diseases)
+-- Purpose: Identifies states with limited vaccine infrastructure by counting 
+--          how many different diseases they have vaccination data for
+-- User Scenario: A national immunization coordinator needs to identify which 
+--                states need infrastructure support for comprehensive vaccine programs
 -- ============================================================================
 SELECT 
     s.state_name,
