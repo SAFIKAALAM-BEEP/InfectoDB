@@ -23,7 +23,7 @@ SELECT
     ROUND((i.total_deaths::DECIMAL / i.total_cases) * 100, 2) AS mortality_rate_percent
 FROM DISEASE d
 JOIN INFECTION_STATS i ON d.disease_id = i.disease_id
-WHERE i.R0 > 2.5 
+WHERE i.R0 > 10 
     AND i.total_cases > 0
     AND i.total_deaths IS NOT NULL
 ORDER BY i.R0 DESC, mortality_rate_percent DESC
