@@ -11,15 +11,13 @@
 -- ============================================================================
 SELECT 
     d.disease_name,
-    d.year_detected,
     i.total_cases,
     i.total_deaths,
     i.R0,
     ROUND((i.total_deaths::DECIMAL / i.total_cases) * 100, 2) AS mortality_rate_percent,
     CASE 
-        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 50 THEN 'Extremely High Mortality'
-        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 20 THEN 'High Mortality'
-        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 5 THEN 'Moderate Mortality'
+        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 10 THEN 'High Mortality'
+        WHEN (i.total_deaths::DECIMAL / i.total_cases * 100) > 1 THEN 'Moderate Mortality'
         ELSE 'Low Mortality'
     END AS mortality_severity
 FROM DISEASE d
